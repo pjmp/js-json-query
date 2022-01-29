@@ -1,4 +1,5 @@
 use std::{
+    error,
     fs::{self, File},
     io::{self, stdout, BufRead, Read, Write},
     path::PathBuf,
@@ -9,11 +10,11 @@ use atty::{is, Stream};
 use v8::{Context, ContextScope, HandleScope, Isolate, Script, V8};
 
 #[derive(Debug, FromArgs)]
-#[doc = "A tool for processing JSON inputs with real JavaScript, no dsl"]
+#[doc = "A tool for processing JSON inputs with JavaScript, no dsl"]
 pub(crate) struct App {
     /// path to json file
-    #[argh(option, short = 'p', from_str_fn(parse_path))]
-    pub(crate) path: Option<PathBuf>,
+    #[argh(option, short = 'f', from_str_fn(parse_path))]
+    pub(crate) file: Option<PathBuf>,
 
     /// code to process the json input
     #[argh(short = 's', positional)]
@@ -33,7 +34,7 @@ fn parse_include_paths(paths: &str) -> Result<Vec<File>, String> {
 
     paths.dedup();
 
-    let mut rect: Vec<File> = vec![];
+    let mut rect = vec![];
 
     for path in paths {
         let file = File::open(path);
@@ -64,10 +65,10 @@ impl App {
     }
 
     pub(crate) fn json(&self) -> String {
-        if is(Stream::Stdin) & self.path.is_some() {
-            let path = self.path.as_ref().unwrap();
+        if is(Stream::Stdin) & self.file.is_some() {
+            let path = self.file.as_ref().unwrap();
 
-            return fs::read_to_string(path).expect("Unable to read file at self.path");
+            return fs::read_to_string(path).expect("Unable to read file");
         }
 
         let stdin = io::stdin();
@@ -83,7 +84,7 @@ impl App {
         })
     }
 
-    pub(crate) fn run() -> Result<(), Box<dyn std::error::Error>> {
+    pub(crate) fn run() -> Result<(), Box<dyn error::Error>> {
         let app = Self::new();
 
         if app.version {
@@ -91,18 +92,9 @@ impl App {
             return Ok(());
         }
 
-        if app.path.is_none() & is(Stream::Stdin) {
-            return Err("pass either `--path` or pipe json".into());
+        if app.file.is_none() & is(Stream::Stdin) {
+            return Err("pass either `--file` or pipe json".into());
         }
-
-        let platform = v8::new_default_platform(0, false).make_shared();
-        V8::initialize_platform(platform);
-        V8::initialize();
-
-        let isolate = &mut Isolate::new(Default::default());
-        let scope = &mut HandleScope::new(isolate);
-        let context = Context::new(scope);
-        let scope = &mut ContextScope::new(scope, context);
 
         let user_script = if let Some(ref script) = app.script {
             let includes = if let Some(ref includes) = app.includes {
@@ -131,7 +123,22 @@ impl App {
             "JSON.stringify(it, null, 2)".to_string()
         };
 
-        let input = app.json();
+        app.eval(&user_script)?;
+
+        Ok(())
+    }
+
+    pub(crate) fn eval(&self, user_script: &str) -> Result<(), Box<dyn error::Error>> {
+        let platform = v8::new_default_platform(0, false).make_shared();
+        V8::initialize_platform(platform);
+        V8::initialize();
+
+        let isolate = &mut Isolate::new(Default::default());
+        let scope = &mut HandleScope::new(isolate);
+        let context = Context::new(scope);
+        let scope = &mut ContextScope::new(scope, context);
+
+        let input = self.json();
         let input = format!("globalThis.it = {input}; {user_script}");
 
         let code = v8::String::new(scope, &input).ok_or("v8::String returned no value")?;
