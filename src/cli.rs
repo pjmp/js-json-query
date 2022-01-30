@@ -84,6 +84,19 @@ impl App {
         })
     }
 
+    fn includes(&self) -> String {
+        if let Some(ref includes) = self.includes {
+            let s = includes.iter().fold(String::new(), |mut init, mut file| {
+                let _ = file.read_to_string(&mut init);
+                init
+            });
+
+            s
+        } else {
+            "".to_string()
+        }
+    }
+
     pub(crate) fn run() -> Result<(), Box<dyn error::Error>> {
         let app = Self::new();
 
@@ -97,14 +110,7 @@ impl App {
         }
 
         let user_script = if let Some(ref script) = app.script {
-            let includes = if let Some(ref includes) = app.includes {
-                includes.iter().fold(String::new(), |mut init, mut file| {
-                    let _ = file.read_to_string(&mut init);
-                    init
-                })
-            } else {
-                "".to_string()
-            };
+            let includes = app.includes();
 
             format!(
                 r#"
@@ -123,7 +129,10 @@ impl App {
             "JSON.stringify(it, null, 2)".to_string()
         };
 
-        app.eval(&user_script)?;
+        let input = app.json();
+        let input = format!("globalThis.it = {input}; {user_script}");
+
+        app.eval(&input)?;
 
         Ok(())
     }
@@ -138,10 +147,7 @@ impl App {
         let context = Context::new(scope);
         let scope = &mut ContextScope::new(scope, context);
 
-        let input = self.json();
-        let input = format!("globalThis.it = {input}; {user_script}");
-
-        let code = v8::String::new(scope, &input).ok_or("v8::String returned no value")?;
+        let code = v8::String::new(scope, user_script).ok_or("v8::String returned no value")?;
         let script =
             Script::compile(scope, code, None).ok_or("Script::compile returned no value")?;
         let result = script.run(scope).ok_or("Local::run returned no value")?;
