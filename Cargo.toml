@@ -1,6 +1,6 @@
 [package]
 name = "js-json-query"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["pjmp"]
 description = "A tool for processing JSON inputs with JavaScript, no dsl."
@@ -20,6 +20,7 @@ name = "jsjq"
 argh = "0.1.7"
 atty = "0.2.14"
 v8 = "0.38.1"
+snailquote = "0.3.1"
 
 [profile.release]
 lto = true

@@ -20,3 +20,11 @@ function pick(obj, ...keys) {
 function has(key, obj = it) {
     return key in obj
 }
+
+function keys(obj = it) {
+    return Object.keys(obj)
+}
+
+function join(arr, sep = `\n`) {
+    return arr.join(sep)
+}

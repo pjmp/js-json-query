@@ -14,19 +14,19 @@ use v8::{Context, ContextScope, HandleScope, Isolate, Script, V8};
 pub(crate) struct App {
     /// path to json file
     #[argh(option, short = 'f', from_str_fn(parse_path))]
-    pub(crate) file: Option<PathBuf>,
+    file: Option<PathBuf>,
 
     /// code to process the json input
     #[argh(short = 's', positional)]
-    pub(crate) script: Option<String>,
+    script: Option<String>,
 
     /// get version information
     #[argh(switch, short = 'v')]
-    pub(crate) version: bool,
+    version: bool,
 
     /// js files to include
     #[argh(option, short = 'i', from_str_fn(parse_include_paths))]
-    pub(crate) includes: Option<Vec<File>>,
+    includes: Option<Vec<File>>,
 }
 
 fn parse_include_paths(paths: &str) -> Result<Vec<File>, String> {
@@ -60,11 +60,11 @@ fn parse_path(path: &str) -> Result<PathBuf, String> {
 }
 
 impl App {
-    pub(crate) fn new() -> Self {
+    fn new() -> Self {
         argh::from_env::<Self>()
     }
 
-    pub(crate) fn json(&self) -> String {
+    fn json(&self) -> String {
         if is(Stream::Stdin) & self.file.is_some() {
             let path = self.file.as_ref().unwrap();
 
@@ -97,6 +97,30 @@ impl App {
         }
     }
 
+    fn script(&self) -> String {
+        if let Some(ref script) = self.script {
+            let includes = self.includes();
+
+            let script = snailquote::escape(script);
+
+            format!(
+                r#"
+                {includes}
+                const out = eval({script});
+                // printing js object just prints `[object Object]`
+                // so need to stringify it.
+                if (typeof out !== "string") {{
+                    JSON.stringify(out, null, 2);
+                }} else {{
+                    out;
+                }}
+            "#
+            )
+        } else {
+            "JSON.stringify(it, null, 2)".to_string()
+        }
+    }
+
     pub(crate) fn run() -> Result<(), Box<dyn error::Error>> {
         let app = Self::new();
 
@@ -109,35 +133,16 @@ impl App {
             return Err("pass either `--file` or pipe json".into());
         }
 
-        let user_script = if let Some(ref script) = app.script {
-            let includes = app.includes();
-
-            format!(
-                r#"
-                {includes}
-                const out = eval("{script}");
-                // printing js object just prints `[object Object]`
-                // so need to stringify it.
-                if (typeof out !== "string") {{
-                    JSON.stringify(out, null, 2);
-                }} else {{
-                    out;
-                }}
-            "#
-            )
-        } else {
-            "JSON.stringify(it, null, 2)".to_string()
-        };
-
-        let input = app.json();
-        let input = format!("globalThis.it = {input}; {user_script}");
+        let it = app.json();
+        let user_script = app.script();
+        let input = format!("globalThis.it = {it}; {user_script}");
 
         app.eval(&input)?;
 
         Ok(())
     }
 
-    pub(crate) fn eval(&self, user_script: &str) -> Result<(), Box<dyn error::Error>> {
+    fn eval(&self, user_script: &str) -> Result<(), Box<dyn error::Error>> {
         let platform = v8::new_default_platform(0, false).make_shared();
         V8::initialize_platform(platform);
         V8::initialize();
