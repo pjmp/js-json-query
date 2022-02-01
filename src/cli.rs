@@ -1,7 +1,7 @@
 use std::{
     error,
     fs::{self, File},
-    io::{self, stdout, BufRead, Read, Write},
+    io::{self, stdout, Read, Write},
     path::PathBuf,
 };
 
@@ -64,24 +64,19 @@ impl App {
         argh::from_env::<Self>()
     }
 
-    fn json(&self) -> String {
+    fn json(&self) -> Result<String, Box<dyn error::Error>> {
         if is(Stream::Stdin) & self.file.is_some() {
             let path = self.file.as_ref().unwrap();
 
-            return fs::read_to_string(path).expect("Unable to read file");
+            return fs::read_to_string(path).map_err(Into::into);
         }
 
         let stdin = io::stdin();
+        let mut buf = String::new();
 
-        stdin.lock().lines().fold(String::new(), |mut acc, line| {
-            if let Ok(line) = line {
-                acc.push_str(&line);
+        stdin.read_line(&mut buf)?;
 
-                acc
-            } else {
-                acc
-            }
-        })
+        Ok(buf)
     }
 
     fn includes(&self) -> String {
@@ -133,7 +128,7 @@ impl App {
             return Err("pass either `--file` or pipe json".into());
         }
 
-        let it = app.json();
+        let it = app.json()?;
         let user_script = app.script();
         let input = format!("globalThis.it = {it}; {user_script}");
 
