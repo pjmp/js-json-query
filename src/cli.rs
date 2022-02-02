@@ -125,7 +125,12 @@ impl App {
         let app = Self::new();
 
         if app.version {
-            println!("v{} (V8 {})", env!("CARGO_PKG_VERSION"), V8::get_version());
+            println!(
+                "v{} ({}) (V8 {})",
+                env!("CARGO_PKG_VERSION"),
+                env!("GIT_COMMIT_HASH"),
+                V8::get_version()
+            );
             return Ok(());
         }
 
@@ -135,7 +140,7 @@ impl App {
 
         let it = app.json()?;
         let user_script = app.script()?;
-        let input = format!("globalThis.it = {it}; {user_script}");
+        let input = format!("globalThis.it = {it}\n{user_script}");
 
         app.eval(&input)?;
 
