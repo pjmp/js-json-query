@@ -1,7 +1,7 @@
 use std::{
     error,
     fs::{self, File},
-    io::{self, stdout, Read, Write},
+    io::{self, stdout, Write},
     path::PathBuf,
 };
 
@@ -42,7 +42,7 @@ fn parse_include_paths(paths: &str) -> Result<Vec<File>, String> {
         if let Ok(path) = file {
             rect.push(path)
         } else {
-            return Err("No such file or directory".to_string());
+            return Err("No such file or directory".into());
         }
     }
 
@@ -55,16 +55,18 @@ fn parse_path(path: &str) -> Result<PathBuf, String> {
     if path.is_file() {
         Ok(path)
     } else {
-        Err("No such file or directory".to_string())
+        Err("No such file or directory".into())
     }
 }
+
+type AppResult<T> = Result<T, Box<dyn error::Error>>;
 
 impl App {
     fn new() -> Self {
         argh::from_env::<Self>()
     }
 
-    fn json(&self) -> Result<String, Box<dyn error::Error>> {
+    fn json(&self) -> AppResult<String> {
         if is(Stream::Stdin) & self.file.is_some() {
             let path = self.file.as_ref().unwrap();
 
@@ -79,26 +81,27 @@ impl App {
         Ok(buf)
     }
 
-    fn includes(&self) -> String {
+    fn includes(&self) -> AppResult<String> {
         if let Some(ref includes) = self.includes {
-            let s = includes.iter().fold(String::new(), |mut init, mut file| {
-                let _ = file.read_to_string(&mut init);
-                init
-            });
+            let mut buffer = Vec::new();
 
-            s
+            for mut file in includes {
+                io::copy(&mut file, &mut buffer)?;
+            }
+
+            String::from_utf8(buffer).map_err(Into::into)
         } else {
-            "".to_string()
+            Ok("".into())
         }
     }
 
-    fn script(&self) -> String {
+    fn script(&self) -> AppResult<String> {
         if let Some(ref script) = self.script {
-            let includes = self.includes();
+            let includes = self.includes()?;
 
             let script = snailquote::escape(script);
 
-            format!(
+            let script = format!(
                 r#"
                 {includes}
                 const out = eval({script});
@@ -110,13 +113,15 @@ impl App {
                     out;
                 }}
             "#
-            )
+            );
+
+            Ok(script)
         } else {
-            "JSON.stringify(it, null, 2)".to_string()
+            Ok("JSON.stringify(it, null, 2)".into())
         }
     }
 
-    pub(crate) fn run() -> Result<(), Box<dyn error::Error>> {
+    pub(crate) fn run() -> AppResult<()> {
         let app = Self::new();
 
         if app.version {
@@ -129,7 +134,7 @@ impl App {
         }
 
         let it = app.json()?;
-        let user_script = app.script();
+        let user_script = app.script()?;
         let input = format!("globalThis.it = {it}; {user_script}");
 
         app.eval(&input)?;
@@ -137,7 +142,7 @@ impl App {
         Ok(())
     }
 
-    fn eval(&self, user_script: &str) -> Result<(), Box<dyn error::Error>> {
+    fn eval(&self, user_script: &str) -> AppResult<()> {
         let platform = v8::new_default_platform(0, false).make_shared();
         V8::initialize_platform(platform);
         V8::initialize();
