@@ -28,3 +28,25 @@ function keys(obj = it) {
 function join(arr, sep = `\n`) {
     return arr.join(sep)
 }
+
+function head(array) {
+    return array[0]
+}
+
+function tail(array) {
+    return array[array.length - 1]
+}
+
+function summary(data = it) {
+    function type(data) {
+        var t = Object.prototype.toString.call(data);
+        var t = t.slice(8, t.length - 1);
+
+        return t;
+    }
+
+    return Object.keys(data).reduce((init, item) => {
+        init[item] = `<${type(data[item])}>`
+        return init;
+    }, {})
+}
