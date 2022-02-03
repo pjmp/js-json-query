@@ -1,7 +1,7 @@
 use std::{
     error,
     fs::{self, File},
-    io::{self, stdout, Write},
+    io::{self, stdout, Read, Write},
     path::PathBuf,
 };
 
@@ -73,23 +73,23 @@ impl App {
             return fs::read_to_string(path).map_err(Into::into);
         }
 
-        let stdin = io::stdin();
+        let mut stdin = io::stdin();
         let mut buf = String::new();
 
-        stdin.read_line(&mut buf)?;
+        stdin.read_to_string(&mut buf)?;
 
         Ok(buf)
     }
 
     fn includes(&self) -> AppResult<String> {
         if let Some(ref includes) = self.includes {
-            let mut buffer = Vec::new();
+            let mut buffer = String::new();
 
             for mut file in includes {
-                io::copy(&mut file, &mut buffer)?;
+                file.read_to_string(&mut buffer)?;
             }
 
-            String::from_utf8(buffer).map_err(Into::into)
+            Ok(buffer)
         } else {
             Ok("".into())
         }
