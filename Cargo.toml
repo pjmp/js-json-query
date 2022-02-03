@@ -5,7 +5,7 @@ edition = "2021"
 authors = ["pjmp"]
 description = "A tool for processing JSON inputs with JavaScript, no dsl."
 categories = ["command-line-utilities"]
-license = "MIT OR Apahe-2.0"
+license = "MIT OR Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/pjmp/js-json-query"
 repository = "https://github.com/pjmp/js-json-query"
@@ -19,7 +19,7 @@ name = "jsjq"
 [dependencies]
 argh = "0.1.7"
 atty = "0.2.14"
-v8 = "0.38.1"
+v8 = "0.39.0"
 snailquote = "0.3.1"
 
 [profile.release]

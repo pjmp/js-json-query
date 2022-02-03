@@ -1,4 +1,4 @@
-# jsjq
+# jsjq [![Crates.io](https://img.shields.io/crates/v/js-json-query)](https://crates.io/crates/js-json-query) ![License](https://img.shields.io/crates/l/js-json-query)
 
 > A tool for processing JSON inputs with JavaScript, no dsl!
 
