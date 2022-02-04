@@ -38,10 +38,10 @@ jobs:
           toolchain: stable
 
       - name: Get the release version from the tag
+        shell: bash
         if: env.APP_VERSION == ''
         run: |
           echo "APP_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-          echo "version is: ${{ env.APP_VERSION }}"
 
       - name: Build
         run: cargo build --release --locked
