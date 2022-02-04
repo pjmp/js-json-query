@@ -1,6 +1,6 @@
 [package]
 name = "js-json-query"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["pjmp"]
 description = "A tool for processing JSON inputs with JavaScript, no dsl."
