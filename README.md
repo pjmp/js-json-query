@@ -25,11 +25,23 @@ echo '{"key": "value"}' | jsjq
 
 jsjq 'it[0]' < EmployeeData.json
 
-cat EmployeeData.json | jsjq 'it.map(t => ({name: t.name, age: t.email, liveLocation: t.liveLocation}))'
+cat EmployeeData.json | jsjq 'it.map(t => ({name: t.name, age: t.email}))'
 
 # pass `-i` flag to include a js file
 jsjq 'let p = it.map(t => t.password); max(p.map(len))' -i demos/libs.js -f EmployeeData.json
 ```
+
+# Installation
+
+If you have rust toolchain installed, you can just do
+
+```shell
+cargo install js-json-query
+```
+
+Getting rust toolchain is super easy, head over [here](https://www.rust-lang.org/tools/install) if you are interested.
+
+Alternatively, you can download pre-build binaries from the [release page](https://github.com/pjmp/js-json-query/releases).
 
 # Usage
 
