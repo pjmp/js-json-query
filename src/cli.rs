@@ -73,10 +73,11 @@ impl App {
             return fs::read_to_string(path).map_err(Into::into);
         }
 
-        let mut stdin = io::stdin();
+        let stdin = io::stdin();
+        let mut handle = stdin.lock();
         let mut buf = String::new();
 
-        stdin.read_to_string(&mut buf)?;
+        handle.read_to_string(&mut buf)?;
 
         Ok(buf)
     }
