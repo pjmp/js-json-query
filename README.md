@@ -1,4 +1,4 @@
-# jsjq [![Crates.io](https://img.shields.io/crates/v/js-json-query)](https://crates.io/crates/js-json-query) ![License](https://img.shields.io/crates/l/js-json-query)
+# jsjq [![Crates.io](https://img.shields.io/crates/v/js-json-query)](https://crates.io/crates/js-json-query) [![Tags](https://img.shields.io/github/v/tag/pjmp/js-json-query?label=latest%20tag&style=flat)](https://github.com/pjmp/js-json-query/tags) ![License](https://img.shields.io/crates/l/js-json-query) 
 
 > A tool for processing JSON inputs with JavaScript, no dsl!
 
