@@ -26,6 +26,8 @@ jobs:
             os: macos-latest
             artifact_name: jsjq
             asset_name: jsjq-macos-amd64
+    outputs:
+      app_version: ${{ env.APP_VERSION }}
 
     steps:
       - uses: actions/checkout@v1
@@ -35,6 +37,12 @@ jobs:
           profile: minimal
           toolchain: stable
 
+      - name: Get the release version from the tag
+        if: env.APP_VERSION == ''
+        run: |
+          echo "APP_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "version is: ${{ env.APP_VERSION }}"
+
       - name: Build
         run: cargo build --release --locked
 
@@ -42,6 +50,6 @@ jobs:
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: target/release/${{ matrix.artifact_name }}
+          file: target/release/${{ matrix.artifact_name }}_${{ env.APP_VERSION }}
           asset_name: ${{ matrix.asset_name }}
           tag: ${{ github.ref }}
