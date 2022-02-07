@@ -16,16 +16,16 @@ jobs:
         include:
           - name: linux
             os: ubuntu-latest
-            artifact_name: jsjq
-            asset_name: jsjq-linux-amd64
+            artifact_name: jjq
+            asset_name: jjq-linux-amd64
           - name: windows
             os: windows-latest
-            artifact_name: jsjq.exe
-            asset_name: jsjq-windows-amd64
+            artifact_name: jjq.exe
+            asset_name: jjq-windows-amd64
           - name: macos
             os: macos-latest
-            artifact_name: jsjq
-            asset_name: jsjq-macos-amd64
+            artifact_name: jjq
+            asset_name: jjq-macos-amd64
     outputs:
       app_version: ${{ env.APP_VERSION }}
 
