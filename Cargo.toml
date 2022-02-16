@@ -4,12 +4,12 @@ version = "0.4.0"
 edition = "2021"
 authors = ["pjmp"]
 description = "A tool for processing JSON inputs with JavaScript, no dsl."
-categories = ["command-line-utilities"]
+categories = ["command-line-utilities", "text-processing", "value-formatting"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 homepage = "https://github.com/pjmp/js-json-query"
 repository = "https://github.com/pjmp/js-json-query"
-keywords = ["jq", "jjq", "js-json-query"]
+keywords = ["jq", "cli", "jjq", "json", "js-json-query"]
 exclude = ["demos/*.js"]
 
 [[bin]]
