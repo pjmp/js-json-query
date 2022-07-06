@@ -1,28 +1,28 @@
 [package]
-name = "js-json-query"
-version = "0.4.0"
-edition = "2021"
 authors = ["pjmp"]
-description = "A tool for processing JSON inputs with JavaScript, no dsl."
 categories = ["command-line-utilities", "text-processing", "value-formatting"]
-license = "MIT OR Apache-2.0"
-readme = "README.md"
-homepage = "https://github.com/pjmp/js-json-query"
-repository = "https://github.com/pjmp/js-json-query"
-keywords = ["jq", "cli", "jjq", "json", "js-json-query"]
+description = "A tool for processing JSON inputs with JavaScript, no dsl."
+edition = "2021"
 exclude = ["demos/*.js"]
+homepage = "https://github.com/pjmp/js-json-query"
+keywords = ["jq", "cli", "jjq", "json", "js-json-query"]
+license = "MIT OR Apache-2.0"
+name = "js-json-query"
+readme = "README.md"
+repository = "https://github.com/pjmp/js-json-query"
+version = "0.5.0"
 
 [[bin]]
-path = "src/main.rs"
 name = "jjq"
+path = "src/main.rs"
 
 [dependencies]
 argh = "0.1.7"
 atty = "0.2.14"
-v8 = "0.39.0"
 snailquote = "0.3.1"
+v8 = "0.43.1"
 
 [profile.release]
+codegen-units = 1
 lto = true
 panic = "abort"
-codegen-units = 1
